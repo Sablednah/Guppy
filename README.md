@@ -20,16 +20,24 @@ what, where and when:
 [Guppy] Tick acceleration #12 stopped after 7m 30s | ... | 144,000 extra block-entity ticks on 1 block (about 320 a second) | ended: ...
 ```
 
-- **who**: the player holding the item, or the last player to click or place the block. If nobody
-  can be named, the line says so and names the nearest player.
+- **who**: the player holding the item, or the player who just used the block. For something
+  placed earlier, it's the player who placed it. If nobody can be named, the line says so and gives
+  the nearest player.
 - **what**: the item, entity or block handing out the ticks, plus the mod and class that did it.
 - `/tick rate`, `/tick sprint` and `/gamerule randomTickSpeed` are logged too.
 - `/guppy` (ops) lists what is speeding time up right now.
 
 ## The joke bit
 
-The player is told *Patience of a Guppy* (or *Captain Guppy!*) in chat and on the action bar. If
-the mod is installed on a client, *Patience of a Guppy* also joins the title-screen splashes.
+The player is told *Patience of a Guppy* (or *Captain Guppy!*) in chat and on the action bar.
+That only happens while they are actually using the thing: holding the watch, or having just
+used the bottle or pouch on a block. A pedestal or Torcherino placed an hour ago, or a guess at
+the nearest player, goes in the log and tells nobody.
+
+Sprinklers, watering cans, twerking and growth accelerators also hand out extra ticks, but nobody
+would call them impatient, so they're excluded by default. The exclusion list is in the config.
+
+If the mod is installed on a client, *Patience of a Guppy* also joins the title-screen splashes.
 
 ## Config
 
@@ -47,7 +55,7 @@ the mod is installed on a client, *Patience of a Guppy* also joins the title-scr
 | `log.ongoingMinutes` | `5` | how often to log a progress line while one keeps going |
 | `log.logCommands` / `commands` | `true` / tick and gamerule | which tick-rate commands are logged |
 | `detection.blockEntities` / `randomTicks` | `true` / `true` | which kinds of extra tick count |
-| `detection.ignoredMods` | `[]` | mod ids that are never reported |
+| `detection.exclude` | sprinklers, watering cans, twerking, growth accelerators | globs matched against the mod id, the item/entity/block id and the class; never reported |
 
 ## How it knows
 

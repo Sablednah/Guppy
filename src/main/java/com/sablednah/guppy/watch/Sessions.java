@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -41,7 +40,7 @@ public final class Sessions {
     public enum Kind { BLOCK_ENTITY, RANDOM }
 
     /** Tuning from the config, set by the loader layer. */
-    public record Settings(boolean log, int quietSeconds, int ongoingMinutes, int nearbyRadius, Set<String> ignoredMods) {}
+    public record Settings(boolean log, int quietSeconds, int ongoingMinutes, int nearbyRadius, Exclusions exclusions) {}
 
     public static final Logger LOG = LoggerFactory.getLogger("Guppy");
 
@@ -51,7 +50,11 @@ public final class Sessions {
         public final int id;
         public final boolean silent;
         public final String who;
-        /** The player to tell, if any: the one responsible, or failing that the nearest. */
+        /**
+         * The player to tell, and only one who is using it right now: the holder of the item, or the
+         * player who clicked the block a moment ago. Null for a pedestal or a Torcherino placed long
+         * ago, or a guess at the nearest player; those go in the log and tell nobody.
+         */
         public final UUID target;
         public final String targetName;
         public final String what;
@@ -120,7 +123,7 @@ public final class Sessions {
     private static Object lastContext;
     private static Session lastSession;
     private static MinecraftServer server;
-    private static Settings settings = new Settings(true, 5, 5, 32, Set.of());
+    private static Settings settings = new Settings(true, 5, 5, 32, Exclusions.NONE);
     private static Consumer<Session> onStart = s -> {};
     private static int nextId = 1;
     private static int started;
@@ -187,19 +190,22 @@ public final class Sessions {
 
     private static Session open(Object context, ServerLevel level, BlockPos pos, long now) {
         Attribution.Caller caller = Attribution.caller();
-        boolean silent = caller == Attribution.VANILLA || settings.ignoredMods().contains(caller.modId());
 
         String what;
+        String thing;
         ServerPlayer responsible = null;
         Recent.Touch touch = null;
+        Recent.Touch placed = null;
         ResourceKey<Level> dim = level.dimension();
         if (context instanceof ItemStack stack) {
             Entity holder = TickWatch.stackHolder;
-            what = "item " + BuiltInRegistries.ITEM.getKey(stack.getItem());
+            thing = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+            what = "item " + thing;
             if (holder instanceof ServerPlayer p) responsible = p;
             else if (holder != null) what += " carried by " + BuiltInRegistries.ENTITY_TYPE.getKey(holder.getType());
         } else if (context instanceof Entity entity) {
-            what = "entity " + BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
+            thing = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString();
+            what = "entity " + thing;
             if (entity instanceof ServerPlayer p) responsible = p;
             else {
                 touch = Recent.clickNear(dim, entity.blockPosition(), now);
@@ -207,14 +213,17 @@ public final class Sessions {
             }
         } else if (context instanceof BlockEntity be) {
             BlockPos at = be.getBlockPos();
-            what = "block " + BuiltInRegistries.BLOCK.getKey(be.getBlockState().getBlock())
-                    + " at " + at.getX() + " " + at.getY() + " " + at.getZ();
+            thing = BuiltInRegistries.BLOCK.getKey(be.getBlockState().getBlock()).toString();
+            what = "block " + thing + " at " + at.getX() + " " + at.getY() + " " + at.getZ();
             touch = Recent.clickNear(dim, at, now);
-            if (touch == null) touch = Recent.placedAt(dim, at);
+            if (touch == null) placed = Recent.placedAt(dim, at);
         } else {
+            thing = "";
             what = "code";
             touch = Recent.clickNear(dim, pos, now);
         }
+        boolean silent = caller == Attribution.VANILLA
+                || settings.exclusions().excludes(caller.modId(), caller.className(), thing);
         if (caller != Attribution.VANILLA) {
             what += " (mod " + caller.modId() + ": " + caller.className() + ")";
         }
@@ -227,19 +236,16 @@ public final class Sessions {
             target = responsible.getUUID();
             targetName = who;
         } else if (touch != null) {
-            who = touch.name() + " (last to use or place that block, with " + touch.item() + ")";
+            who = touch.name() + " (used that block just before, with " + touch.item() + ")";
             target = touch.player();
             targetName = touch.name();
         } else {
             ServerPlayer nearest = nearest(level, pos, settings.nearbyRadius());
-            if (nearest != null) {
-                int d = (int) Math.sqrt(nearest.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5));
-                targetName = Compat.name(nearest);
-                who = "unknown - nearest player " + targetName + ", " + d + " blocks away";
-                target = nearest.getUUID();
-            } else {
-                who = "unknown - no player within " + settings.nearbyRadius() + " blocks";
-            }
+            String near = nearest == null ? "no player within " + settings.nearbyRadius() + " blocks"
+                    : "nearest player " + Compat.name(nearest) + ", "
+                    + (int) Math.sqrt(nearest.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5))
+                    + " blocks away";
+            who = placed != null ? placed.name() + " (placed it; not using it now - " + near + ")" : "unknown - " + near;
         }
 
         String where = Compat.dimension(dim) + " " + pos.getX() + " " + pos.getY() + " " + pos.getZ()

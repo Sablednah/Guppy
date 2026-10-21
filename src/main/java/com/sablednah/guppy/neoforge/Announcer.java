@@ -34,7 +34,8 @@ public final class Announcer {
         GuppyConfig.Audience audience = GuppyConfig.AUDIENCE.get();
         boolean chat = GuppyConfig.CHAT.get();
         boolean bar = GuppyConfig.ACTION_BAR.get();
-        if (audience == GuppyConfig.Audience.NONE || (!chat && !bar)) return;
+        // Only ever about somebody using it right now (see Session.target): never a guess.
+        if (s.target == null || audience == GuppyConfig.Audience.NONE || (!chat && !bar)) return;
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server == null) return;
         String line = pick();
@@ -42,7 +43,7 @@ public final class Announcer {
 
         long now = Sessions.now();
         long cooldown = GuppyConfig.COOLDOWN.get() * 20L;
-        Component message = format(line, s.targetName == null ? "Someone" : s.targetName, thing(s.what));
+        Component message = format(line, s.targetName, thing(s.what));
         for (ServerPlayer p : audience(server, s, audience)) {
             Long last = LAST_TOLD.get(p.getUUID());
             if (last != null && now - last < cooldown) continue;
@@ -56,7 +57,7 @@ public final class Announcer {
         List<ServerPlayer> to = new ArrayList<>();
         switch (audience) {
             case PLAYER -> {
-                ServerPlayer p = s.target == null ? null : server.getPlayerList().getPlayer(s.target);
+                ServerPlayer p = server.getPlayerList().getPlayer(s.target);
                 if (p != null) to.add(p);
             }
             case NEARBY -> {

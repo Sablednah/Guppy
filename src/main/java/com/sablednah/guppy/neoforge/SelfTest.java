@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sablednah.guppy.watch.Exclusions;
 import com.sablednah.guppy.watch.GuppyTicker;
 import com.sablednah.guppy.watch.Sessions;
 import com.sablednah.guppy.watch.TickWatch;
@@ -73,6 +74,7 @@ final class SelfTest {
                 stageAt = now;
             } else if (stage == 1 && now - stageAt >= 20L * (com.sablednah.guppy.GuppyConfig.QUIET_SECONDS.get() + 3)) {
                 closed();
+                exclusions();
                 messages();
                 if (LiveMods.start(server)) {
                     stage = 2;
@@ -139,6 +141,7 @@ final class SelfTest {
             check("2 blocks touched (got " + s.blocks() + ")", s.blocks() == 2);
             check("named the mod that did it (" + s.what + ")", s.what.contains("mod guppy-selftest"));
             check("said nobody could be named (" + s.who + ")", s.who.startsWith("unknown"));
+            check("nobody is messaged when nobody is using it", s.target == null);
         }
 
         // 4. From an entity's tick, the way the bottle's entity does it: its own session, named by the entity.
@@ -183,6 +186,18 @@ final class SelfTest {
         check("every session closed once it went quiet", Sessions.active().isEmpty());
         check("both sessions logged an end (got " + (Sessions.endedCount() - endedBefore) + ")",
                 Sessions.endedCount() - endedBefore == 2);
+    }
+
+    private static void exclusions() {
+        Exclusions ex = Exclusions.of(List.of("*sprinkler*", "*twerk*", "torcherino", "*watering_can*"));
+        check("exclude: a sprinkler block by id", ex.excludes("cyclic", "com.lothrazar.cyclic.X", "cyclic:sprinkler"));
+        check("exclude: a twerk mod by its class", ex.excludes("twerkitmeal", "com.x.TwerkHandler", ""));
+        check("exclude: a bare id is that mod only", ex.excludes("torcherino", "a.B", "") && !ex.excludes("torcherinoplus", "a.B", ""));
+        check("exclude: a watering can item", ex.excludes("justdirethings", "a.B", "justdirethings:watering_can"));
+        check("exclude: leaves the Watch of Flowing Time alone",
+                !ex.excludes("projecte", "moze_intel.projecte.gameObjs.items.rings.TimeWatch", "projecte:time_watch"));
+        check("exclude: leaves Time in a Bottle alone",
+                !ex.excludes("tiab", "org.mangorage.tiab.common.entities.TimeAcceleratorEntity", "tiab:time_accelerator"));
     }
 
     private static void messages() {
