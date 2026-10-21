@@ -1,7 +1,7 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.141'
+    id 'net.neoforged.moddev' version '2.0.144'
     id 'idea'
 }
 
@@ -19,8 +19,8 @@ base {
     archivesName = mod_id
 }
 
-// Mojang ships Java 21 to end users on the 1.21 lines.
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+// 26.x ships the java-runtime-epsilon JRE (Java 25) to players.
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 neoForge {
     version = project.neo_version
