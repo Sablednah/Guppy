@@ -2,7 +2,7 @@ package com.sablednah.guppy;
 
 import java.util.List;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 
 /**
  * Everything an owner can change, in {@code config/guppy-common.toml}. Edits apply on save.
@@ -21,27 +21,27 @@ public final class GuppyConfig {
         NONE
     }
 
-    private static final ModConfigSpec.Builder B = new ModConfigSpec.Builder();
+    private static final ForgeConfigSpec.Builder B = new ForgeConfigSpec.Builder();
 
-    public static final ModConfigSpec.ConfigValue<List<? extends String>> MESSAGES;
-    public static final ModConfigSpec.BooleanValue RANDOM;
-    public static final ModConfigSpec.EnumValue<Audience> AUDIENCE;
-    public static final ModConfigSpec.BooleanValue CHAT;
-    public static final ModConfigSpec.BooleanValue ACTION_BAR;
-    public static final ModConfigSpec.IntValue NEARBY_RADIUS;
-    public static final ModConfigSpec.IntValue COOLDOWN;
+    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> MESSAGES;
+    public static final ForgeConfigSpec.BooleanValue RANDOM;
+    public static final ForgeConfigSpec.EnumValue<Audience> AUDIENCE;
+    public static final ForgeConfigSpec.BooleanValue CHAT;
+    public static final ForgeConfigSpec.BooleanValue ACTION_BAR;
+    public static final ForgeConfigSpec.IntValue NEARBY_RADIUS;
+    public static final ForgeConfigSpec.IntValue COOLDOWN;
 
-    public static final ModConfigSpec.BooleanValue LOG;
-    public static final ModConfigSpec.IntValue QUIET_SECONDS;
-    public static final ModConfigSpec.IntValue ONGOING_MINUTES;
-    public static final ModConfigSpec.BooleanValue LOG_COMMANDS;
-    public static final ModConfigSpec.ConfigValue<List<? extends String>> COMMANDS;
+    public static final ForgeConfigSpec.BooleanValue LOG;
+    public static final ForgeConfigSpec.IntValue QUIET_SECONDS;
+    public static final ForgeConfigSpec.IntValue ONGOING_MINUTES;
+    public static final ForgeConfigSpec.BooleanValue LOG_COMMANDS;
+    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> COMMANDS;
 
-    public static final ModConfigSpec.BooleanValue BLOCK_ENTITIES;
-    public static final ModConfigSpec.BooleanValue RANDOM_TICKS;
-    public static final ModConfigSpec.ConfigValue<List<? extends String>> EXCLUDE;
+    public static final ForgeConfigSpec.BooleanValue BLOCK_ENTITIES;
+    public static final ForgeConfigSpec.BooleanValue RANDOM_TICKS;
+    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> EXCLUDE;
 
-    public static final ModConfigSpec SPEC;
+    public static final ForgeConfigSpec SPEC;
 
     static {
         B.comment("What the player is told when they speed time up.").push("messages");
@@ -50,7 +50,7 @@ public final class GuppyConfig {
                         "  {player} - the player's name    {what} - the item, entity or block doing it",
                         "  &-codes colour it (&6 gold, &b aqua, &o italic, ...). Without any, it is shown in aqua.")
                 .defineListAllowEmpty("messages", List.of("Patience of a Guppy", "Captain Guppy!"),
-                        () -> "Patience of a Guppy", o -> o instanceof String);
+                        o -> o instanceof String);
         RANDOM = B.comment("Pick a message from the pool at random. When false, the first one is always used.")
                 .define("random", true);
         AUDIENCE = B.comment(
@@ -83,7 +83,7 @@ public final class GuppyConfig {
                 .defineListAllowEmpty("commands",
                         List.of("tick rate", "tick sprint", "tick step", "tick freeze", "tick unfreeze",
                                 "gamerule randomTickSpeed", "gamerule random_tick_speed"),
-                        () -> "tick rate", o -> o instanceof String);
+                        o -> o instanceof String);
         B.pop();
 
         B.comment("What counts.").push("detection");
@@ -98,7 +98,7 @@ public final class GuppyConfig {
                 .defineListAllowEmpty("exclude", List.of(
                         "*sprinkler*", "*watering_can*", "*wateringcan*", "*twerk*",
                         "*growth_accelerator*", "*growthaccelerator*", "*growth_crystal*", "*fertiliz*"),
-                        () -> "*sprinkler*", o -> o instanceof String);
+                        o -> o instanceof String);
         B.pop();
 
         SPEC = B.build();

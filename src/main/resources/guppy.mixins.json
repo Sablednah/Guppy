@@ -1,13 +1,17 @@
 {
   "required": true,
-  "minVersion": "0.8.5",
+  "minVersion": "0.8",
   "package": "com.sablednah.guppy.mixin",
-  "compatibilityLevel": "JAVA_21",
+  "refmap": "guppy.refmap.json",
+  "compatibilityLevel": "JAVA_17",
   "mixins": [
     "BlockStateBaseMixin",
     "ItemStackMixin",
     "LevelMixin",
     "ServerLevelMixin"
+  ],
+  "client": [
+    "SplashManagerMixin"
   ],
   "injectors": {
     "defaultRequire": 0

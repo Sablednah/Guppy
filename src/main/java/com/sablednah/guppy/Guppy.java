@@ -6,12 +6,13 @@ import com.sablednah.guppy.watch.Exclusions;
 import com.sablednah.guppy.watch.Sessions;
 import com.sablednah.guppy.watch.TickWatch;
 
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.config.ModConfig;
-import net.neoforged.fml.event.config.ModConfigEvent;
-import net.neoforged.neoforge.common.NeoForge;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 /**
  * Guppy: for players with the patience of a guppy.
@@ -29,11 +30,12 @@ public final class Guppy {
 
     public static final String MODID = "guppy";
 
-    public Guppy(IEventBus modEventBus, ModContainer modContainer) {
-        modContainer.registerConfig(ModConfig.Type.COMMON, GuppyConfig.SPEC);
+    public Guppy() {
+        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, GuppyConfig.SPEC);
         modEventBus.addListener(Guppy::onConfigLoad);
         modEventBus.addListener(Guppy::onConfigReload);
-        NeoForge.EVENT_BUS.register(GuppyEvents.class);
+        MinecraftForge.EVENT_BUS.register(GuppyEvents.class);
         Sessions.onStart(Announcer::announce);
 
         // Which build, not just which release. Same format across the family of mods.

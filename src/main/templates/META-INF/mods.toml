@@ -1,4 +1,5 @@
-# Guppy — neoforge.mods.toml (values are expanded from gradle.properties at build time).
+# Guppy — mods.toml (values are expanded from gradle.properties at build time).
+# 1.20.1 Forge reads META-INF/mods.toml, and its dependency blocks take mandatory=true/false.
 modLoader="javafml"
 loaderVersion="${loader_version_range}"
 license="${mod_license}"
@@ -14,21 +15,16 @@ ${mod_description}
 '''
 displayURL="${mod_homepage}"
 
-# Small mixins mark vanilla's own block-entity and random-tick passes, so a tick from anywhere else
-# can be told apart. See watch/TickWatch before porting a line.
-[[mixins]]
-config="guppy.mixins.json"
-
 [[dependencies.${mod_id}]]
-    modId="neoforge"
-    type="required"
-    versionRange="${neo_version_range}"
+    modId="forge"
+    mandatory=true
+    versionRange="${forge_version_range}"
     ordering="NONE"
     side="BOTH"
 
 [[dependencies.${mod_id}]]
     modId="minecraft"
-    type="required"
+    mandatory=true
     versionRange="${minecraft_version_range}"
     ordering="NONE"
     side="BOTH"

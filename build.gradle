@@ -1,7 +1,7 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.141'
+    id 'net.neoforged.moddev.legacyforge' version '2.0.147'
     id 'idea'
 }
 
@@ -19,11 +19,22 @@ base {
     archivesName = mod_id
 }
 
-// Mojang ships Java 21 to end users on the 1.21 lines.
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+repositories {
+    // The Mixin annotation processor, which writes the refmap (see legacyForge.mixin below).
+    maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
+}
 
-neoForge {
-    version = project.neo_version
+// Minecraft 1.20.1 ships Java 17 to end users.
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+legacyForge {
+    // Mixins on 1.20.1 need a refmap, because the shipped jar runs against obfuscated (SRG) names:
+    // the plugin runs the Mixin annotation processor to write one, and wires the dev runs.
+    mixin {
+        add sourceSets.main, 'guppy.refmap.json'
+        config 'guppy.mixins.json'
+    }
+    version = project.forge_version
 
     if (project.parchment_minecraft_version?.trim() && project.parchment_mappings_version?.trim()) {
         parchment {
@@ -96,8 +107,7 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
     var replaceProperties = [
             minecraft_version      : minecraft_version,
             minecraft_version_range: minecraft_version_range,
-            neo_version            : neo_version,
-            neo_version_range      : neo_version_range,
+            forge_version_range    : forge_version_range,
             loader_version_range   : loader_version_range,
             mod_id                 : mod_id,
             mod_name               : mod_name,
@@ -116,12 +126,15 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
     into "build/generated/sources/modMetadata"
 }
 sourceSets.main.resources.srcDir generateModMetadata
-neoForge.ideSyncTask generateModMetadata
+legacyForge.ideSyncTask generateModMetadata
 
 // The same stamp on the manifest, for reading a jar from a shell without loading it.
 tasks.named('jar', Jar) {
     manifest {
         attributes([
+                // Production Forge 1.20.1 finds a mod's mixin configs through this attribute; the
+                // mixin DSL above only wires the dev runs.
+                "MixinConfigs"          : "guppy.mixins.json",
                 "Implementation-Title"  : mod_name,
                 "Implementation-Version": mod_version,
                 "Build-Commit"          : buildCommit,
@@ -129,6 +142,12 @@ tasks.named('jar', Jar) {
                 "Build-Time"            : buildTime,
         ])
     }
+}
+
+dependencies {
+    // Writes the refmap at compile time. Without it the refmap is silently empty and every
+    // vanilla-targeted mixin fails in production.
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
 publishing {

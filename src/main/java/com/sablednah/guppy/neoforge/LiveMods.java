@@ -6,20 +6,14 @@ import java.util.List;
 import com.sablednah.guppy.watch.Sessions;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.common.util.FakePlayerFactory;
+import net.minecraftforge.common.util.FakePlayer;
 
 /**
  * The self-test's second half, run only when real accelerator mods are in {@code run/mods}: their
@@ -75,18 +69,9 @@ final class LiveMods {
             EXPECTED.add(new Expectation(id, "entity " + id));
         }
 
-        Item watch = item("projecte:watch_of_flowing_time");
-        DataComponentType<?> active = component("projecte:active");
-        if (watch != null && active != null) {
-            level.setBlock(WATCH_FURNACE, Blocks.FURNACE.defaultBlockState(), 3);
-            watcher = FakePlayerFactory.getMinecraft(level);
-            watcher.setGameMode(GameType.CREATIVE);
-            watcher.setPos(WATCH_FURNACE.getX() + 1.5, WATCH_FURNACE.getY(), WATCH_FURNACE.getZ() + 0.5);
-            ItemStack stack = new ItemStack(watch);
-            set(stack, active, Boolean.TRUE);
-            watcher.getInventory().setItem(0, stack);
-            EXPECTED.add(new Expectation("Watch of Flowing Time in a player's hotbar", "item projecte:watch_of_flowing_time"));
-        }
+        // ProjectE's watch is not tried on this line: 1.20.1 has no item components to switch it on
+        // with, and its NBT form is ProjectE's own business. Its route (the chunk's bound ticker)
+        // is covered by the self-test's first half.
         return !EXPECTED.isEmpty();
     }
 
@@ -95,7 +80,7 @@ final class LiveMods {
      * item would. {@code EntityType.create} is the part that moves between lines.
      */
     private static boolean spawn(ServerLevel level, EntityType<?> type, BlockPos at) {
-        Entity entity = type.create(level, EntitySpawnReason.COMMAND);
+        Entity entity = type.create(level);
         if (entity == null) return false;
         entity.setPos(at.getX() + 0.5, at.getY(), at.getZ() + 0.5);
         for (String setter : new String[] {"setTimesAccelerated:2", "setTicksRemaining:400", "setTimeRate:4", "setRemainingTime:400"}) {
@@ -121,24 +106,5 @@ final class LiveMods {
     static void stop() {
         if (watcher != null) watcher.getInventory().clearContent();
         watcher = null;
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T> void set(ItemStack stack, DataComponentType<?> type, T value) {
-        stack.set((DataComponentType<T>) type, value);
-    }
-
-    private static Item item(String id) {
-        for (Item i : BuiltInRegistries.ITEM) {
-            if (BuiltInRegistries.ITEM.getKey(i).toString().equals(id)) return i;
-        }
-        return null;
-    }
-
-    private static DataComponentType<?> component(String id) {
-        for (DataComponentType<?> t : BuiltInRegistries.DATA_COMPONENT_TYPE) {
-            if (id.equals(String.valueOf(BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(t)))) return t;
-        }
-        return null;
     }
 }
