@@ -13,10 +13,10 @@ public final class Compat {
     private Compat() {}
 
     public static String dimension(ResourceKey<Level> level) {
-        return level.identifier().toString();
+        return level.location().toString();
     }
 
     public static String name(Player player) {
-        return player.getGameProfile().name();
+        return player.getGameProfile().getName();
     }
 }

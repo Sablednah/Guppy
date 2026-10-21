@@ -17,7 +17,7 @@ final class GuppyCommands {
 
     static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("guppy")
-                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                .requires(source -> source.hasPermission(Commands.LEVEL_GAMEMASTERS))
                 .executes(ctx -> list(ctx.getSource())));
     }
 
