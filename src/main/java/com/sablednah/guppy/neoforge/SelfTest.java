@@ -33,6 +33,8 @@ final class SelfTest {
     private static final BlockPos WHEAT = new BlockPos(5, 200, 5);
     /** Vanilla gets this long to tick the furnace (and must not be reported) before we accelerate. */
     private static final int SETTLE_TICKS = 40;
+    /** How long the real accelerators get before their sessions are read. */
+    private static final int LIVE_TICKS = 60;
 
     private static boolean running;
     private static int stage;
@@ -72,7 +74,20 @@ final class SelfTest {
             } else if (stage == 1 && now - stageAt >= 20L * (com.sablednah.guppy.GuppyConfig.QUIET_SECONDS.get() + 3)) {
                 closed();
                 messages();
-                finish(server);
+                if (LiveMods.start(server)) {
+                    stage = 2;
+                    stageAt = now;
+                } else {
+                    Sessions.LOG.info("Self-test: no accelerator mods in run/mods, so no live check");
+                    finish(server);
+                }
+            } else if (stage == 2) {
+                LiveMods.tick();
+                if (now - stageAt >= LIVE_TICKS) {
+                    live();
+                    LiveMods.stop();
+                    finish(server);
+                }
             }
         } catch (Throwable t) {
             fail("self-test threw " + t);
@@ -177,6 +192,21 @@ final class SelfTest {
                 .equals("projecte:time_watch"));
         check("{what} of a block drops the position", Announcer.thing("block projecte:dm_pedestal at 1 2 3 (mod projecte: x)")
                 .equals("projecte:dm_pedestal"));
+    }
+
+    /** Every real accelerator found has a session of its own, named by it, that has counted ticks. */
+    private static void live() {
+        List<Sessions.Session> active = Sessions.active();
+        for (Sessions.Session s : active) {
+            Sessions.LOG.info("Self-test (live): #{} who: {} | what: {} | {}", s.id, s.who, s.what, s.tally());
+        }
+        for (LiveMods.Expectation e : LiveMods.expected()) {
+            Sessions.Session found = null;
+            for (Sessions.Session s : active) if (s.what.startsWith(e.whatContains())) found = s;
+            check("live: " + e.label() + " was caught and named", found != null);
+            if (found != null) check("live: " + e.label() + " counted extra ticks (" + found.tally() + ")",
+                    found.blockEntityTicks() + found.randomTicks() > 0);
+        }
     }
 
     private static void check(String what, boolean ok) {
