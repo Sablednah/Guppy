@@ -30,7 +30,9 @@ public final class Guppy {
     public static final String MODID = "guppy";
 
     public Guppy(IEventBus modEventBus, ModContainer modContainer) {
-        modContainer.registerConfig(ModConfig.Type.COMMON, GuppyConfig.SPEC);
+        // LOCAL is what FML 12.0.8 (NeoForge 26.3.0.37+) calls COMMON. The file name is given so a
+        // server moving up from 26.2 keeps its settings rather than starting from defaults.
+        modContainer.registerConfig(ModConfig.Type.LOCAL, GuppyConfig.SPEC, "guppy-common.toml");
         modEventBus.addListener(Guppy::onConfigLoad);
         modEventBus.addListener(Guppy::onConfigReload);
         NeoForge.EVENT_BUS.register(GuppyEvents.class);
