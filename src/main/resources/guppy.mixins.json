@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8.5",
+  "package": "com.sablednah.guppy.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "BlockStateBaseMixin",
+    "ItemStackMixin",
+    "LevelMixin",
+    "ServerLevelMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

@@ -1,0 +1,156 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'net.neoforged.moddev' version '2.0.141'
+    id 'idea'
+}
+
+tasks.named('wrapper', Wrapper).configure {
+    distributionType = Wrapper.DistributionType.BIN
+}
+
+// The jar carries the Minecraft version it was built against. Every line shares a mod version, and
+// six files all called guppy-1.0.0.jar would be indistinguishable in a mods folder or on a releases
+// page. The mod's own version (in neoforge.mods.toml) stays a plain ${mod_version}.
+version = "${mod_version}+mc${minecraft_version}"
+group = mod_group_id
+
+base {
+    archivesName = mod_id
+}
+
+// Mojang ships Java 21 to end users on the 1.21 lines.
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+neoForge {
+    version = project.neo_version
+
+    if (project.parchment_minecraft_version?.trim() && project.parchment_mappings_version?.trim()) {
+        parchment {
+            minecraftVersion = project.parchment_minecraft_version
+            mappingsVersion = project.parchment_mappings_version
+        }
+    }
+
+    runs {
+        client {
+            client()
+            // Join the dev server straight from the launcher:  ./gradlew runClient -PguppyJoin
+            if (project.hasProperty('guppyJoin')) {
+                programArguments.addAll '--quickPlayMultiplayer', "127.0.0.1:${project.dev_server_port}".toString()
+            }
+        }
+
+        server {
+            server()
+            programArgument '--nogui'
+            // ./gradlew runServer -Pselftest -- runs SelfTest once the server has started, logs a
+            // pass/fail block and stops the server. A -D on the gradlew line would set it on
+            // Gradle's JVM instead.
+            if (project.hasProperty('selftest')) {
+                systemProperty 'guppy.selftest', 'true'
+            }
+        }
+
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Build stamp, in the format shared across Sable's mods (see BuildInfo). A version number answers
+// "which release"; the stamp answers "which bytes", and the startup log line says what actually RAN.
+// Resolved at configure time and tolerant of git being absent: an unknown stamp never fails a build.
+static String gitOut(File dir, String... args) {
+    try {
+        var proc = new ProcessBuilder(args).directory(dir).redirectErrorStream(true).start()
+        var out = proc.inputStream.text.trim()
+        return proc.waitFor() == 0 && !out.isEmpty() ? out : null
+    } catch (Exception ignored) {
+        return null
+    }
+}
+var buildCommit = gitOut(projectDir, "git", "rev-parse", "--short=8", "HEAD") ?: "unknown"
+var buildBranch = gitOut(projectDir, "git", "rev-parse", "--abbrev-ref", "HEAD") ?: "unknown"
+var buildDirty  = gitOut(projectDir, "git", "status", "--porcelain")
+if (buildDirty) buildCommit += "-dirty"   // built from uncommitted changes; say so
+// The COMMIT's time (%ct, epoch), not the wall clock: a wall-clock stamp changes on every Gradle
+// invocation and costs every no-op build its up-to-date checks.
+var commitEpoch = gitOut(projectDir, "git", "show", "-s", "--format=%ct", "HEAD")
+var buildTime = commitEpoch
+        ? new Date(commitEpoch.toLong() * 1000L).format("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone("UTC"))
+        : "unknown"
+logger.lifecycle("Build stamp: ${buildCommit} on ${buildBranch} at ${buildTime}")
+
+// Expand mod metadata into the generated neoforge.mods.toml, and the build stamp into
+// /guppy/build.properties (namespaced: a bare /build.properties would collide with other mods').
+var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
+    var replaceProperties = [
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            neo_version            : neo_version,
+            neo_version_range      : neo_version_range,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+            mod_authors            : mod_authors,
+            mod_description        : mod_description,
+            mod_homepage           : mod_homepage,
+            build_commit           : buildCommit,
+            build_branch           : buildBranch,
+            build_time             : buildTime,
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from "src/main/templates"
+    into "build/generated/sources/modMetadata"
+}
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
+
+// The same stamp on the manifest, for reading a jar from a shell without loading it.
+tasks.named('jar', Jar) {
+    manifest {
+        attributes([
+                "Implementation-Title"  : mod_name,
+                "Implementation-Version": mod_version,
+                "Build-Commit"          : buildCommit,
+                "Build-Branch"          : buildBranch,
+                "Build-Time"            : buildTime,
+        ])
+    }
+}
+
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            url "file://${project.projectDir}/repo"
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}

@@ -1,0 +1,34 @@
+# Guppy — neoforge.mods.toml (values are expanded from gradle.properties at build time).
+modLoader="javafml"
+loaderVersion="${loader_version_range}"
+license="${mod_license}"
+issueTrackerURL="https://github.com/Sablednah/Guppy/issues"
+
+[[mods]]
+modId="${mod_id}"
+version="${mod_version}"
+displayName="${mod_name}"
+authors="${mod_authors}"
+description='''
+${mod_description}
+'''
+displayURL="${mod_homepage}"
+
+# Small mixins mark vanilla's own block-entity and random-tick passes, so a tick from anywhere else
+# can be told apart. See watch/TickWatch before porting a line.
+[[mixins]]
+config="guppy.mixins.json"
+
+[[dependencies.${mod_id}]]
+    modId="neoforge"
+    type="required"
+    versionRange="${neo_version_range}"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="minecraft"
+    type="required"
+    versionRange="${minecraft_version_range}"
+    ordering="NONE"
+    side="BOTH"
