@@ -11,7 +11,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.item.Item;
@@ -95,7 +94,7 @@ final class LiveMods {
      * item would. {@code EntityType.create} is the part that moves between lines.
      */
     private static boolean spawn(ServerLevel level, EntityType<?> type, BlockPos at) {
-        Entity entity = type.create(level, EntitySpawnReason.COMMAND);
+        Entity entity = type.create(level);
         if (entity == null) return false;
         entity.setPos(at.getX() + 0.5, at.getY(), at.getZ() + 0.5);
         for (String setter : new String[] {"setTimesAccelerated:2", "setTicksRemaining:400", "setTimeRate:4", "setRemainingTime:400"}) {
