@@ -130,7 +130,7 @@ final class SelfTest {
 
         // 3. Extra random ticks on a crop.
         BlockState wheat = level.getBlockState(WHEAT);
-        for (int i = 0; i < 3; i++) wheat.randomTick(level, WHEAT, level.random);
+        for (int i = 0; i < 3; i++) wheat.randomTick(level, WHEAT, level.getRandom());
 
         List<Sessions.Session> active = Sessions.active();
         check("one session for the unattributed extra ticks", active.size() == 1);
