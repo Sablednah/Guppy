@@ -81,7 +81,7 @@ public final class Announcer {
         return pool.get(ThreadLocalRandom.current().nextInt(pool.size()));
     }
 
-    /** {@code item projecte:time_watch (mod ...)} -> {@code projecte:time_watch}. */
+    /** {@code item projecte:watch_of_flowing_time (mod ...)} -> {@code projecte:watch_of_flowing_time}. */
     static String thing(String what) {
         String t = what;
         int mod = t.indexOf(" (mod ");
