@@ -10,7 +10,10 @@ import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
@@ -26,7 +29,7 @@ import net.neoforged.neoforge.common.util.FakePlayerFactory;
  * <ul>
  *     <li>Any entity type whose id has "accelerat" in it (Time in a Bottle, Temporal Pouch) is
  *         summoned on a furnace with every NBT key either mod reads.</li>
- *     <li>ProjectE's {@code time_watch} goes, switched on, into a creative fake player's hotbar
+ *     <li>ProjectE's {@code watch_of_flowing_time} goes, switched on, into a creative fake player's hotbar
  *         beside a furnace, and that inventory is ticked the way a player's is.</li>
  * </ul>
  */
@@ -60,11 +63,19 @@ final class LiveMods {
             String command = "summon " + id + " " + (furnace.getX() + 0.5) + " " + furnace.getY() + " "
                     + (furnace.getZ() + 0.5) + " " + nbt;
             Sessions.LOG.info("Self-test (live): /{}", command);
+            int before = level.getEntitiesOfClass(Entity.class, new AABB(furnace)).size();
             server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withSuppressedOutput(), command);
+            if (level.getEntitiesOfClass(Entity.class, new AABB(furnace)).size() == before) {
+                // GAG's is not summonable: make it the way its pouch does.
+                if (!spawn(level, type, furnace)) {
+                    Sessions.LOG.warn("Self-test (live): could not spawn {}", id);
+                    continue;
+                }
+            }
             EXPECTED.add(new Expectation(id, "entity " + id));
         }
 
-        Item watch = item("projecte:time_watch");
+        Item watch = item("projecte:watch_of_flowing_time");
         DataComponentType<?> active = component("projecte:active");
         if (watch != null && active != null) {
             level.setBlock(WATCH_FURNACE, Blocks.FURNACE.defaultBlockState(), 3);
@@ -74,9 +85,28 @@ final class LiveMods {
             ItemStack stack = new ItemStack(watch);
             set(stack, active, Boolean.TRUE);
             watcher.getInventory().setItem(0, stack);
-            EXPECTED.add(new Expectation("projecte:time_watch in a player's hotbar", "item projecte:time_watch"));
+            EXPECTED.add(new Expectation("Watch of Flowing Time in a player's hotbar", "item projecte:watch_of_flowing_time"));
         }
         return !EXPECTED.isEmpty();
+    }
+
+    /**
+     * Creates the entity directly and sets it going through its own setters, by name, the way its
+     * item would. {@code EntityType.create} is the part that moves between lines.
+     */
+    private static boolean spawn(ServerLevel level, EntityType<?> type, BlockPos at) {
+        Entity entity = type.create(level, EntitySpawnReason.COMMAND);
+        if (entity == null) return false;
+        entity.setPos(at.getX() + 0.5, at.getY(), at.getZ() + 0.5);
+        for (String setter : new String[] {"setTimesAccelerated:2", "setTicksRemaining:400", "setTimeRate:4", "setRemainingTime:400"}) {
+            String[] nv = setter.split(":");
+            try {
+                entity.getClass().getMethod(nv[0], int.class).invoke(entity, Integer.parseInt(nv[1]));
+            } catch (ReflectiveOperationException ignored) {
+                // Not this mod's setter.
+            }
+        }
+        return level.addFreshEntity(entity);
     }
 
     /** A player's inventory ticks from its connection, which a fake player has none of. */

@@ -195,7 +195,7 @@ final class SelfTest {
         check("exclude: a bare id is that mod only", ex.excludes("torcherino", "a.B", "") && !ex.excludes("torcherinoplus", "a.B", ""));
         check("exclude: a watering can item", ex.excludes("justdirethings", "a.B", "justdirethings:watering_can"));
         check("exclude: leaves the Watch of Flowing Time alone",
-                !ex.excludes("projecte", "moze_intel.projecte.gameObjs.items.rings.TimeWatch", "projecte:time_watch"));
+                !ex.excludes("projecte", "moze_intel.projecte.gameObjs.items.rings.TimeWatch", "projecte:watch_of_flowing_time"));
         check("exclude: leaves Time in a Bottle alone",
                 !ex.excludes("tiab", "org.mangorage.tiab.common.entities.TimeAcceleratorEntity", "tiab:time_accelerator"));
     }
@@ -203,8 +203,8 @@ final class SelfTest {
     private static void messages() {
         String coloured = Announcer.format("&6Patience of a {player}", "Guppy", "x").getString();
         check("& codes become colour codes (" + coloured + ")", coloured.equals("§6Patience of a Guppy"));
-        check("{what} is the short name", Announcer.thing("item projecte:time_watch (mod projecte: moze_intel.X)")
-                .equals("projecte:time_watch"));
+        check("{what} is the short name", Announcer.thing("item projecte:watch_of_flowing_time (mod projecte: moze_intel.X)")
+                .equals("projecte:watch_of_flowing_time"));
         check("{what} of a block drops the position", Announcer.thing("block projecte:dm_pedestal at 1 2 3 (mod projecte: x)")
                 .equals("projecte:dm_pedestal"));
     }

@@ -1,6 +1,7 @@
 package com.sablednah.guppy.watch;
 
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -342,6 +343,6 @@ public final class Sessions {
     }
 
     public static String timestamp() {
-        return OffsetDateTime.now().truncatedTo(ChronoUnit.SECONDS).toString();
+        return OffsetDateTime.now().truncatedTo(ChronoUnit.SECONDS).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
     }
 }
