@@ -1,11 +1,8 @@
 package com.sablednah.guppy;
 
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Set;
-
 import com.sablednah.guppy.neoforge.Announcer;
 import com.sablednah.guppy.neoforge.GuppyEvents;
+import com.sablednah.guppy.watch.Exclusions;
 import com.sablednah.guppy.watch.Sessions;
 import com.sablednah.guppy.watch.TickWatch;
 
@@ -53,10 +50,9 @@ public final class Guppy {
 
     private static void apply() {
         TickWatch.configure(GuppyConfig.BLOCK_ENTITIES.get(), GuppyConfig.RANDOM_TICKS.get());
-        Set<String> ignored = new HashSet<>();
-        for (String mod : GuppyConfig.IGNORED_MODS.get()) ignored.add(mod.trim().toLowerCase(Locale.ROOT));
         Sessions.configure(new Sessions.Settings(GuppyConfig.LOG.get(), GuppyConfig.QUIET_SECONDS.get(),
-                GuppyConfig.ONGOING_MINUTES.get(), GuppyConfig.NEARBY_RADIUS.get(), Set.copyOf(ignored)));
+                GuppyConfig.ONGOING_MINUTES.get(), GuppyConfig.NEARBY_RADIUS.get(),
+                Exclusions.of(GuppyConfig.EXCLUDE.get())));
         GuppyEvents.configure();
     }
 }
