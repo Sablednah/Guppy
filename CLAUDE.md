@@ -24,6 +24,25 @@ export JAVA_HOME=/mnt/d/Repos/sable/CityWorld-ReForged/tools/jdk21   # jdk17 on 
 - Real mods can go in `run/mods` for a live check (GAG and ProjectE exist for 1.21.1; Time in a
   Bottle exists for 1.21.1 and 26.x).
 
+### Multiplayer (the broadcast, the cooldown)
+
+The self-test has no players, so anything about who is told needs real clients. `TestClient.cmd`
+(from SableCraft-Standards; read its comments) launches dev clients **from Windows**:
+`TestClient.cmd main` is Sablednah, the default is TestBuddy, and `third` is TestThird.
+
+- Start `./gradlew runServer` in WSL. Enable RCON in `run/server.properties` with a port of its own
+  (`rcon.port=25591`), because Standards uses 25575.
+- From WSL: `cmd.exe /c "TestClient.cmd main" < /dev/null &` and `cmd.exe /c TestClient.cmd < /dev/null &`.
+  The first launch compiles for several minutes. Wait for "joined the game" in the server log.
+- Trigger without anyone clicking: on 1.21.1, with ProjectE in `run/mods`, run
+  `give Sablednah projecte:watch_of_flowing_time[projecte:active=true]` near a furnace (creative).
+- Read chat from the **client** logs: `grep -o '\[CHAT\].*' runBuddy/logs/latest.log`. RCON does
+  not see messages sent to players.
+- Stop with RCON `stop`. Kill the clients from PowerShell (`Get-CimInstance Win32_Process`, matching
+  `runMain|runBuddy|TestClient`): `pgrep` can't see them.
+- Verified 2026-10-22 on 1.21.1: Sablednah got "Captain Guppy!", and TestBuddy got
+  "Sablednah is Captain Guppy!".
+
 ## How detection works (read before changing anything)
 
 `watch/TickWatch` holds the whole idea. In short:
