@@ -31,6 +31,9 @@ public final class GuppyConfig {
     public static final ForgeConfigSpec.IntValue NEARBY_RADIUS;
     public static final ForgeConfigSpec.IntValue COOLDOWN;
 
+    public static final ForgeConfigSpec.BooleanValue BROADCAST;
+    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> BROADCAST_MESSAGES;
+
     public static final ForgeConfigSpec.BooleanValue LOG;
     public static final ForgeConfigSpec.IntValue QUIET_SECONDS;
     public static final ForgeConfigSpec.IntValue ONGOING_MINUTES;
@@ -66,8 +69,19 @@ public final class GuppyConfig {
         ACTION_BAR = B.comment("Show it on the action bar, above the hotbar.").define("actionBar", true);
         NEARBY_RADIUS = B.comment("How far NEARBY reaches, and how far the log looks for a nearest player, in blocks.")
                 .defineInRange("nearbyRadius", 32, 1, 512);
-        COOLDOWN = B.comment("Seconds before the same player is told again.")
+        COOLDOWN = B.comment("Seconds before the same player is called out again, by either message.")
                 .defineInRange("cooldownSeconds", 60, 0, 86400);
+        B.pop();
+
+        B.comment("Everyone else is told too: the fun is being called out for being impatient.").push("broadcast");
+        BROADCAST = B.comment("Tell every other player on the server, in chat.",
+                        "Only ever about somebody using it right now, like the message above.")
+                .define("enabled", true);
+        BROADCAST_MESSAGES = B.comment(
+                        "The call-out, or a pool to pick from. {player}, {what} and &-codes work as above.",
+                        "The random setting above applies here too.")
+                .defineListAllowEmpty("messages", List.of("{player} has the patience of a guppy", "{player} is Captain Guppy!"),
+                        o -> o instanceof String);
         B.pop();
 
         B.comment("The server log: the useful bit.").push("log");
