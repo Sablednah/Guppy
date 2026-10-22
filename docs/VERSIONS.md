@@ -32,5 +32,7 @@ Ported 2026-10-21. The hooked call sites (see CLAUDE.md) have the same shape on 
   the list `prepare` returns. It copies the list rather than shadowing a field, to stay clear of
   reobfuscation.
 - `ForgeConfigSpec.defineListAllowEmpty` has no element-supplier overload.
+- Every mod jar needs a `pack.mcmeta` (`pack_format` 15). Without one, Forge shows "failed to load a
+  valid ResourcePackInfo" on the loading screen. The NeoForge lines don't need one.
 - The production jar has only been checked by its refmap. It still needs a run in the
   `1.20.1  Forge` instance.
