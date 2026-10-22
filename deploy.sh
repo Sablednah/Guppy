@@ -20,14 +20,15 @@ if [ -z "$MC_VERSION" ]; then
 fi
 
 # The JDK tracks Minecraft: 17 for 1.20.x, 21 for the 1.21 lines, 25 for 26.x. A JAVA_HOME set by
-# the caller always wins. tools/ is gitignored; CityWorld's copy is used when this repo has none.
+# the caller always wins. tools/ is gitignored; CityWorld's copy is used when this repo has none
+# (one level up from main, two from a worktree).
 if [ -z "${JAVA_HOME:-}" ]; then
     case "$MC_VERSION" in
         1.20.*) WANT_JDK="jdk17" ;;
         1.*)    WANT_JDK="jdk21" ;;
         *)      WANT_JDK="jdk25" ;;
     esac
-    for dir in "$ROOT/tools/$WANT_JDK" "$ROOT/../CityWorld-ReForged/tools/$WANT_JDK"; do
+    for dir in "$ROOT/tools/$WANT_JDK" "$ROOT/../CityWorld-ReForged/tools/$WANT_JDK" "$ROOT/../../CityWorld-ReForged/tools/$WANT_JDK"; do
         if [ -x "$dir/bin/java" ]; then export JAVA_HOME="$(cd "$dir" && pwd)"; break; fi
     done
     if [ -z "${JAVA_HOME:-}" ]; then
