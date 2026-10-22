@@ -14,6 +14,16 @@ description='''
 ${mod_description}
 '''
 displayURL="${mod_homepage}"
+# Declared three ways, as ChatFilter does; a loader ignores the keys it doesn't know:
+#   iconFile   - the small square beside the name in the mod list (26.2+): the fish plaque
+#   bannerFile - the wide image in the info panel (26.2+): the wordmark
+#   logoFile   - what older loaders show in the info panel
+# Both are antialiased artwork on transparent backgrounds, so they are smoothed, not snapped.
+iconFile="guppy-icon.png"
+bannerFile="guppy-banner.png"
+logoFile="guppy-banner.png"
+logoBlur=true
+iconBlur=true
 
 [[dependencies.${mod_id}]]
     modId="forge"
