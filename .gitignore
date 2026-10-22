@@ -38,6 +38,11 @@ bin/
 ### Minecraft Modding ###
 run/
 !**/src/**/run/
+runMain/
+runBuddy/
+runThird/
+build-win-*/
+.gradle-win-*/
 **/src/generated/**/.cache/
 repo/
 !**/src/**/repo/
