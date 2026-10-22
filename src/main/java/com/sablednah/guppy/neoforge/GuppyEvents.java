@@ -106,7 +106,7 @@ public final class GuppyEvents {
     public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         ItemStack held = event.getItemStack();
-        String item = held.isEmpty() ? "an empty hand" : BuiltInRegistries.ITEM.getKey(held.getItem()).toString();
+        String item = held.isEmpty() ? Recent.EMPTY_HAND : BuiltInRegistries.ITEM.getKey(held.getItem()).toString();
         Recent.clicked(player.level().dimension(), event.getPos(),
                 new Recent.Touch(player.getUUID(), Compat.name(player), item, Sessions.now()));
     }
