@@ -49,7 +49,9 @@ If the mod is installed on a client, *Patience of a Guppy* also joins the title-
 | `messages.random` | `true` | pick a random message; `false` always uses the first |
 | `messages.audience` | `PLAYER` | `PLAYER`, `NEARBY`, `EVERYONE`, or `NONE` (server log only) |
 | `messages.chat` / `actionBar` | `true` / `true` | where the message is shown |
-| `messages.cooldownSeconds` | `60` | how long before the same player is told again |
+| `messages.cooldownSeconds` | `60` | how long before the same player is called out again |
+| `broadcast.enabled` | `true` | also call them out, in chat, to everyone else on the server |
+| `broadcast.messages` | `["{player} has the patience of a guppy", "{player} is Captain Guppy!"]` | the call-out pool |
 | `log.enabled` | `true` | the who/what/where/when lines |
 | `log.quietSeconds` | `5` | how long without extra ticks before an acceleration counts as stopped |
 | `log.ongoingMinutes` | `5` | how often to log a progress line while one keeps going |
