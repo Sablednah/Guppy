@@ -14,6 +14,8 @@ First release.
 - Tells the player *Patience of a Guppy*, only while they are actually using the accelerator, in chat and on the action bar. The message pool,
   randomness, audience, cooldown and where it shows are all configurable, and the audience can be
   set to nobody (server log only).
+- Calls them out to everyone else in chat (*{player} is Captain Guppy!*), with its own pool and
+  a toggle. One call-out per player per cooldown.
 - Logs `/tick` and `/gamerule randomTickSpeed`.
 - `/guppy` lists the accelerations running right now.
 - Adds *Patience of a Guppy* to the title-screen splashes on clients that have it installed.
