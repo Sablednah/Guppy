@@ -12,6 +12,12 @@ tasks.named('wrapper', Wrapper).configure {
 // The jar carries the Minecraft version it was built against. Every line shares a mod version, and
 // six files all called guppy-1.0.0.jar would be indistinguishable in a mods folder or on a releases
 // page. The mod's own version (in neoforge.mods.toml) stays a plain ${mod_version}.
+// TestClient.cmd builds each Windows client in its own build-win-<name>/, so it never tries to
+// replace a jar the running WSL dev server holds open (AccessDeniedException on drvfs).
+if (project.hasProperty('winClient')) {
+    layout.buildDirectory = layout.projectDirectory.dir("build-win-${project.winClient}")
+}
+
 version = "${mod_version}+mc${minecraft_version}"
 group = mod_group_id
 
@@ -50,6 +56,29 @@ legacyForge {
             if (project.hasProperty('guppyJoin')) {
                 programArguments.addAll '--quickPlayMultiplayer', "127.0.0.1:${project.dev_server_port}".toString()
             }
+        }
+
+        // Dev clients for multiplayer testing, launched from Windows by TestClient.cmd: you, TestBuddy
+        // as everyone else, and TestThird as a bystander. Offline names against the
+        // online-mode=false dev server. Own game directories, so they never fight the server over
+        // logs/latest.log.
+        clientMain {
+            client()
+            programArguments.addAll '--username', 'Sablednah',
+                    '--quickPlayMultiplayer', "127.0.0.1:${project.dev_server_port}".toString()
+            gameDirectory = file('runMain')
+        }
+        clientBuddy {
+            client()
+            programArguments.addAll '--username', 'TestBuddy',
+                    '--quickPlayMultiplayer', "127.0.0.1:${project.dev_server_port}".toString()
+            gameDirectory = file('runBuddy')
+        }
+        clientThird {
+            client()
+            programArguments.addAll '--username', 'TestThird',
+                    '--quickPlayMultiplayer', "127.0.0.1:${project.dev_server_port}".toString()
+            gameDirectory = file('runThird')
         }
 
         server {
