@@ -11,9 +11,9 @@ First release.
   minutes, and a summary (extra ticks, blocks, rate) when it stops.
 - Sprinklers, watering cans, twerking and growth accelerators are excluded by default, through a
   glob list matched against mod id, item/entity/block id and class.
-- Tells the player *Patience of a Guppy*, only while they are actually using the accelerator, in chat and on the action bar. The message pool,
-  randomness, audience, cooldown and where it shows are all configurable, and the audience can be
-  set to nobody (server log only).
+- Tells the player *Patience of a Guppy*, in chat and on the action bar, only while they are
+  actually using the accelerator. The message pool, randomness, audience, cooldown and where it
+  shows are all configurable, and the audience can be set to nobody (server log only).
 - Calls them out to everyone else in chat (*{player} is Captain Guppy!*), with its own pool and
   a toggle. One call-out per player per cooldown.
 - Logs `/tick` and `/gamerule randomTickSpeed`.
