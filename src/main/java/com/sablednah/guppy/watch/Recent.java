@@ -36,8 +36,18 @@ public final class Recent {
 
     private Recent() {}
 
+    /** The item a click shows when the hand was empty. */
+    public static final String EMPTY_HAND = "an empty hand";
+
     public static void clicked(ResourceKey<Level> level, BlockPos pos, Touch touch) {
         Key key = new Key(level, pos.asLong());
+        // A right-click fires once per hand. The off hand's, usually empty, must not overwrite the
+        // main hand's bottle or pouch from the same tick.
+        Touch earlier = CLICKS.get(key);
+        if (earlier != null && earlier.tick() == touch.tick() && EMPTY_HAND.equals(touch.item())
+                && !EMPTY_HAND.equals(earlier.item())) {
+            return;
+        }
         CLICKS.remove(key);
         CLICKS.put(key, touch);
         if (CLICKS.size() > CAP) {
